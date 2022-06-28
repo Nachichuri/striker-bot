@@ -3,3 +3,9 @@
 
 # SQLite databases
 *.db
+
+# VSCode
+.vscode/
+
+# Bytecode
+__pycache__/
