@@ -1,0 +1,5 @@
+# Virtual environment files
+.venv
+
+# SQLite databases
+*.db
