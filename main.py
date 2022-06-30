@@ -50,6 +50,14 @@ def create_user(update: Update, context: CallbackContext):
     )
 
 
+def strike_user(update: Update, context: CallbackContext):
+    args = validate_arguments(update.message.text)
+    update.message.reply_text(
+        strikerdb.strike_user(DB_NAME, args),
+        parse_mode="Markdown",
+    )
+
+
 def unknown(update: Update, context: CallbackContext):
     update.message.reply_text("Sorry '%s' is not a valid command" % update.message.text)
 
@@ -64,6 +72,7 @@ updater.dispatcher.add_handler(CommandHandler("start", start))
 updater.dispatcher.add_handler(CommandHandler("help", help))
 updater.dispatcher.add_handler(CommandHandler("status", get_status))
 updater.dispatcher.add_handler(CommandHandler("create_user", create_user))
+updater.dispatcher.add_handler(CommandHandler("strike", strike_user))
 updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown))
 updater.dispatcher.add_handler(
     MessageHandler(Filters.command, unknown)

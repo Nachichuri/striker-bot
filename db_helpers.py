@@ -1,5 +1,7 @@
+from logging import exception
 import sqlite3
 import queries
+import helpers
 
 
 def check_connection(db_name):
@@ -19,8 +21,10 @@ def create_user(db_name, args):
 
     if len(args) == 0:
         return "✋ Please enter command followed by the name to be added."
-    elif len(args) > 1:
+    if len(args) > 1:
         return "✋ Please enter command followed by a *single* user name."
+    if len(args) == 1 and args[0].isnumeric():
+        return "✋ The user name should have at least one letter."
 
     user = args[0]
 
@@ -85,33 +89,10 @@ def get_status(db_name, args: None):
             )
 
         strike_count = int(user_status[0][1])
-        pastries_count = user_status[0][2]
+        pastries_count = int(user_status[0][2])
 
-        if strike_count < 0:
-            strikes_status = f"⚡ Strikes: *{strike_count}* (Hey! Don't think for a second this'll let you break the production environment next friday!)"
-
-        match strike_count:
-            case 0:
-                strikes_status = "⚡ Strikes: *0* (For now)"
-            case 1 | 2:
-                strikes_status = (
-                    f"⚡ Strikes: *{strike_count}* (Only {strike_count}? Are we sure?)"
-                )
-            case 3:
-                strikes_status = "⚡ Strikes: *3* (Oooh, half way there!)"
-            case 4 | 5:
-                strikes_status = f"⚡ Strikes: *{strike_count}* (Better watch your step, only 1 strike left to reach the _pastries tier_!)"
-
-        if pastries_count == 0:
-            pastries_status = "🥐 Pastries: *0* (Somebody's been cautious lately...)"
-        if pastries_count == 1:
-            pastries_status = (
-                "🥐 Pastries: *1* (Pastries eaters around the office, rejoice!)"
-            )
-        if pastries_count == 2:
-            pastries_status = "🥐 Pastries: *2* (Hey, staking? Is that even allowed?)"
-        if pastries_count >= 3:
-            pastries_status = f"🥐 Pastries: *{pastries_count}* (What? {pastries_count}???? I'd start looking into some kind of personal loan by now...)"
+        strikes_status = helpers.get_strike_reaction(strike_count)
+        pastries_status = helpers.get_pastries_reaction(pastries_count)
 
         return (
             f"Here's where *{user_display}* stands:\n\n"
@@ -121,3 +102,77 @@ def get_status(db_name, args: None):
             f"Keep in mind you can add n strikes using _/strike {user_display} n_"
             "\nψ (｀∇´) ψ"
         )
+
+
+def strike_user(db_name, args: None):
+
+    if len(args) == 0 or (len(args) > 1 and args[0].isnumeric()):
+        return (
+            "✋ After the _/strike_ command, tell me the name of the person we're striking first, "
+            "and then optionally the number of strikes to add/substract ( ͡° ͜ʖ ͡°)"
+        )
+
+    user = args[0]
+    user_display = user.capitalize()
+
+    conn = sqlite3.connect(db_name)
+
+    with conn as claw:
+        cursor = claw.cursor()
+
+        cursor.execute(queries.get_status_from_user, (user,))
+        user_status = cursor.fetchall()
+
+        user_display = user.capitalize()
+
+        if len(user_status) == 0:
+            return (
+                f"Whoops! Couldn't find user *{user_display}* 🤔\n"
+                "Are you sure it exists?\n"
+                "You can see every user using /status, and "
+                "create new users using /create\_user"
+            )
+
+        current_user_strikes = int(user_status[0][1])
+        current_user_pastries = int(user_status[0][2])
+
+        if len(args) == 1:
+            strikes_to_add = 1
+            updated_user_status = helpers.compute_new_values(
+                current_user_strikes, current_user_pastries, strikes_to_add
+            )
+        else:
+            try:
+                strikes_to_add = int(args[1])
+                updated_user_status = helpers.compute_new_values(
+                    current_user_strikes, current_user_pastries, strikes_to_add
+                )
+            except ValueError:
+                return (
+                    f"✋ _{args[1]}_ is not a valid number of strikes. "
+                    f"Please type an integer representing the number of strikes "
+                    f"to add/substract from {user_display}. For example: _/strike {user_display} 1_"
+                )
+
+        cursor.execute(
+            queries.update_user_status,
+            (updated_user_status[0], updated_user_status[1], user),
+        )
+
+        updated_status_answer = (
+            f"Striking done. Here's where *{user_display}* stands now:\n\n"
+            f"{helpers.get_strike_reaction(updated_user_status[0])}\n\n"
+            f"{helpers.get_pastries_reaction(updated_user_status[1])}"
+        )
+
+        if updated_user_status[1] > current_user_pastries:
+            new_pastries_prelude = (
+                f"🎉 Great news everyone! {user_display} now owes "
+                f"{updated_user_status[1] - current_user_pastries} new pastries."
+            )
+
+            updated_status_answer = "\n\n".join(
+                [new_pastries_prelude, updated_status_answer]
+            )
+
+        return updated_status_answer
