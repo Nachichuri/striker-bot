@@ -51,7 +51,21 @@ def get_status(db_name, args: None):
         cursor = claw.cursor()
 
         if len(args) == 0:
-            return "Sarasa"
+
+            cursor.execute(queries.get_all_status)
+            all_status = cursor.fetchall()
+
+            all_status_results = "\n".join(
+                [
+                    f"*{x[0].capitalize()}* has {x[1]} ⚡ and owes {x[2]} 🥐"
+                    for x in all_status
+                ]
+            )
+
+            return (
+                f"Here's a report on everyone's current status:\n\n{all_status_results}"
+            )
+
         if len(args) > 1:
             return "✋ Please enter command followed by a *single* user name."
 
