@@ -1,3 +1,8 @@
-def validate_username(message):
-    user = message.split()[1]
-    return user.lower()
+def validate_arguments(message):
+
+    if len(message.split()) == 1:
+        return []
+
+    arguments = message.split()[1:]
+
+    return arguments
