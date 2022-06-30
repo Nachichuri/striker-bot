@@ -1,7 +1,7 @@
 import os
 import db_helpers as strikerdb
 
-from helpers import validate_username
+from helpers import validate_arguments
 from telegram.ext.filters import Filters
 from telegram.ext.messagehandler import MessageHandler
 from telegram.ext.commandhandler import CommandHandler
@@ -11,7 +11,7 @@ from telegram.ext.updater import Updater
 
 DB_NAME = os.getenv("DB_NAME")
 BOT_API_TOKEN = os.getenv("BOT_API_TOKEN")
-DB_CONNECTION = strikerdb.get_connection(DB_NAME)
+DB_CONNECTION = strikerdb.check_connection(DB_NAME)
 
 updater = Updater(BOT_API_TOKEN, use_context=True)
 
@@ -19,40 +19,35 @@ updater = Updater(BOT_API_TOKEN, use_context=True)
 def start(update: Update, context: CallbackContext):
     update.message.reply_text(
         "Hello there! I am Striker, and what makes me happy is keeping tabs on "
-        "the number of strikes of everyone in this chat. Please write /help to "
-        "see the commands available."
+        "the number of strikes for everyone in this group 😼 Feel free to enter "
+        " /help to see the available commands."
     )
 
 
 def help(update: Update, context: CallbackContext):
     update.message.reply_text(
-        """Available Commands :-
-    /status - see overall or user-specific status
-    /create_user - adds a new user to be striken"""
+        """Available commands:
+    /status — see overall or user-specific status
+    /strike <i>user n</i>  — add n strikes to the user
+    /create_user <i>user</i>  — adds a new user to be striken""",
+        parse_mode="HTML",
     )
 
 
-def get_strikes(update: Update, context: CallbackContext):
-    update.message.reply_text("Getting strikes...")
-    
-    user = validate_username(update.message.text)
-    
-    result = strikerdb.get_status(DB_NAME, user)
-    update.message.reply_text(result, parse_mode="Markdown")
+def get_status(update: Update, context: CallbackContext):
+    args = validate_arguments(update.message.text)
+
+    update.message.reply_text(
+        strikerdb.get_status(DB_NAME, args), parse_mode="Markdown"
+    )
 
 
 def create_user(update: Update, context: CallbackContext):
-    if update.message.text == "/create_user":
-        update.message.reply_text("What?")
-    else:
-        update.message.reply_text("Creating user...")
-        user = validate_username(update.message.text)
-        strikerdb.create_user(DB_NAME, user)
-        update.message.reply_text(
-            f"User *{user}* created successfully.\n"
-            f"You can start striking him/her using _/strike {user} (nstrikes)_",
-            parse_mode="Markdown",
-        )
+    args = validate_arguments(update.message.text)
+    update.message.reply_text(
+        strikerdb.create_user(DB_NAME, args),
+        parse_mode="Markdown",
+    )
 
 
 def unknown(update: Update, context: CallbackContext):
@@ -67,7 +62,7 @@ def unknown_text(update: Update, context: CallbackContext):
 
 updater.dispatcher.add_handler(CommandHandler("start", start))
 updater.dispatcher.add_handler(CommandHandler("help", help))
-updater.dispatcher.add_handler(CommandHandler("status", get_strikes))
+updater.dispatcher.add_handler(CommandHandler("status", get_status))
 updater.dispatcher.add_handler(CommandHandler("create_user", create_user))
 updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown))
 updater.dispatcher.add_handler(
