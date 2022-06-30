@@ -27,13 +27,18 @@ def start(update: Update, context: CallbackContext):
 def help(update: Update, context: CallbackContext):
     update.message.reply_text(
         """Available Commands :-
-    /strikes - see strikes
+    /status - see overall or user-specific status
     /create_user - adds a new user to be striken"""
     )
 
 
 def get_strikes(update: Update, context: CallbackContext):
     update.message.reply_text("Getting strikes...")
+    
+    user = validate_username(update.message.text)
+    
+    result = strikerdb.get_status(DB_NAME, user)
+    update.message.reply_text(result, parse_mode="Markdown")
 
 
 def create_user(update: Update, context: CallbackContext):
@@ -62,7 +67,7 @@ def unknown_text(update: Update, context: CallbackContext):
 
 updater.dispatcher.add_handler(CommandHandler("start", start))
 updater.dispatcher.add_handler(CommandHandler("help", help))
-updater.dispatcher.add_handler(CommandHandler("strikes", get_strikes))
+updater.dispatcher.add_handler(CommandHandler("status", get_strikes))
 updater.dispatcher.add_handler(CommandHandler("create_user", create_user))
 updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown))
 updater.dispatcher.add_handler(

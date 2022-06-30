@@ -1,0 +1,1 @@
+get_status_from_user = 'SELECT * FROM strikes WHERE name = ?'
