@@ -22,11 +22,12 @@ def create_user(db_name, args):
     if len(args) == 0:
         return "✋ Please enter command followed by the name to be added."
     if len(args) > 1:
-        return "✋ Please enter command followed by a *single* user name."
+        return helpers.more_than_one_user_message
     if len(args) == 1 and args[0].isnumeric():
         return "✋ The user name should have at least one letter."
 
     user = args[0]
+    user_display = user.capitalize()
 
     with conn as claw:
         cursor = claw.cursor()
@@ -66,12 +67,18 @@ def get_status(db_name, args: None):
                 ]
             )
 
+            if len(all_status) == 0:
+                return (
+                    "Seems like there aren't any users yet!\n\n"
+                    "You can add a new user running /create\_user _user_"
+                )
+
             return (
                 f"Here's a report on everyone's current status:\n\n{all_status_results}"
             )
 
         if len(args) > 1:
-            return "✋ Please enter command followed by a *single* user name."
+            return helpers.more_than_one_user_message
 
         user = args[0]
 
@@ -81,12 +88,7 @@ def get_status(db_name, args: None):
         user_display = user.capitalize()
 
         if len(user_status) == 0:
-            return (
-                f"Whoops! Couldn't find user *{user_display}* 🤔\n"
-                "Are you sure it exists?\n"
-                "You can see every user using /status, and "
-                "create new users using /create\_user"
-            )
+            return helpers.user_not_found_message % user_display
 
         strike_count = int(user_status[0][1])
         pastries_count = int(user_status[0][2])
@@ -104,12 +106,12 @@ def get_status(db_name, args: None):
         )
 
 
-def strike_user(db_name, args: None):
+def strike_user(db_name, args):
 
     if len(args) == 0 or (len(args) > 1 and args[0].isnumeric()):
         return (
             "✋ After the _/strike_ command, tell me the name of the person we're striking first, "
-            "and then optionally the number of strikes to add/substract ( ͡° ͜ʖ ͡°)"
+            "and then optionally the number of strikes to add/substract\n( ͡° ͜ʖ ͡°)"
         )
 
     user = args[0]
@@ -123,15 +125,8 @@ def strike_user(db_name, args: None):
         cursor.execute(queries.get_status_from_user, (user,))
         user_status = cursor.fetchall()
 
-        user_display = user.capitalize()
-
         if len(user_status) == 0:
-            return (
-                f"Whoops! Couldn't find user *{user_display}* 🤔\n"
-                "Are you sure it exists?\n"
-                "You can see every user using /status, and "
-                "create new users using /create\_user"
-            )
+            return helpers.user_not_found_message % user_display
 
         current_user_strikes = int(user_status[0][1])
         current_user_pastries = int(user_status[0][2])
@@ -176,3 +171,76 @@ def strike_user(db_name, args: None):
             )
 
         return updated_status_answer
+
+
+def substract_pastry(db_name, args):
+
+    if len(args) == 0:
+        return "Please tell me who brought pastries to the office so I can decrease his/her pastries counter."
+
+    if len(args) > 1:
+        return helpers.more_than_one_user_message
+
+    user = args[0]
+    user_display = user.capitalize()
+
+    conn = sqlite3.connect(db_name)
+
+    with conn as claw:
+        cursor = claw.cursor()
+
+        cursor.execute(queries.get_status_from_user, (user,))
+        user_status = cursor.fetchall()
+
+        if len(user_status) == 0:
+            return helpers.user_not_found_message % user_display
+
+        current_user_strikes = user_status[0][1]
+        current_user_pastries = user_status[0][2]
+
+        if current_user_pastries == 0:
+            return (
+                f"Hmmm... looks like *{user_display}* didn't owe any pastries.\n\n"
+                "If he/she did something good and you want to praise the effort, "
+                "you can add negative strikes for the screwups to come.\n\n"
+                "But pastries are *non negotiable*."
+            )
+
+        new_user_pastry_count = current_user_pastries - 1
+
+        cursor.execute(
+            queries.update_user_pastries,
+            (new_user_pastry_count, user),
+        )
+
+        updated_status_answer = (
+            f"Here's where *{user_display}* stands now:\n\n"
+            f"{helpers.get_strike_reaction(current_user_strikes)}\n\n"
+            f"{helpers.get_pastries_reaction(new_user_pastry_count)}"
+        )
+
+        if new_user_pastry_count == 0:
+            updated_pastries_prelude = (
+                f"Ok, *{user_display}* has settled the ancestral debt.\n"
+                "He/She can walk without shame now."
+            )
+
+            return "\n\n".join(
+                [
+                    updated_pastries_prelude,
+                    updated_status_answer,
+                ]
+            )
+
+        updated_pastries_prelude = (
+            f"Ok, *{user_display}* has settled the ancestral debt.\n"
+            f"BUT WAIT! The good news is *{new_user_pastry_count}* pastries are still owed by him/her!"
+            "\n( ͡° ͜ʖ ͡°)"
+        )
+
+        return "\n\n".join(
+            [
+                updated_pastries_prelude,
+                updated_status_answer,
+            ]
+        )

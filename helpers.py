@@ -1,3 +1,9 @@
+user_not_found_message = "Whoops! Couldn't find user *%s* 🤔\nAre you sure it exists?\nYou can see every user using /status, and create new users using /create\_user"
+more_than_one_user_message = (
+    "✋ Please enter command followed only by a *single* user name."
+)
+
+
 def validate_arguments(message):
 
     if len(message.split()) == 1:
