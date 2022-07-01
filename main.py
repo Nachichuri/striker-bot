@@ -12,6 +12,7 @@ from telegram.ext.updater import Updater
 DB_NAME = f"db/{os.getenv('DB_NAME')}"
 BOT_API_TOKEN = os.getenv("BOT_API_TOKEN")
 DB_CONNECTION = strikerdb.check_connection(DB_NAME)
+ALLOWED_GROUPS = [int(id) for id in os.getenv("ALLOWED_GROUPS").split(",")]
 
 updater = Updater(BOT_API_TOKEN, use_context=True)
 
@@ -97,17 +98,48 @@ def unknown_text(update: Update, context: CallbackContext):
     )
 
 
-updater.dispatcher.add_handler(CommandHandler("start", start))
-updater.dispatcher.add_handler(CommandHandler("help", help))
-updater.dispatcher.add_handler(CommandHandler("rules", get_rules))
-updater.dispatcher.add_handler(CommandHandler("status", get_status))
-updater.dispatcher.add_handler(CommandHandler("create_user", create_user))
-updater.dispatcher.add_handler(CommandHandler("strike", strike_user))
-updater.dispatcher.add_handler(CommandHandler(
-    "brought_pastries", substract_pastry))
+updater.dispatcher.add_handler(
+    CommandHandler("start", start, filters=Filters.chat(ALLOWED_GROUPS))
+)
+updater.dispatcher.add_handler(
+    CommandHandler("help", help, filters=Filters.chat(ALLOWED_GROUPS))
+)
+updater.dispatcher.add_handler(
+    CommandHandler("rules", get_rules, filters=Filters.chat(ALLOWED_GROUPS))
+)
+updater.dispatcher.add_handler(
+    CommandHandler("status", get_status, filters=Filters.chat(ALLOWED_GROUPS))
+)
+updater.dispatcher.add_handler(
+    CommandHandler("create_user", create_user, filters=Filters.chat(ALLOWED_GROUPS))
+)
+updater.dispatcher.add_handler(
+    CommandHandler("strike", strike_user, filters=Filters.chat(ALLOWED_GROUPS))
+)
+updater.dispatcher.add_handler(
+    CommandHandler(
+        "brought_pastries", substract_pastry, filters=Filters.chat(ALLOWED_GROUPS)
+    )
+)
 
-updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown))
-updater.dispatcher.add_handler(MessageHandler(Filters.command, unknown))
-updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
+updater.dispatcher.add_handler(
+    MessageHandler(
+        Filters.text & Filters.chat(ALLOWED_GROUPS),
+        unknown,
+    )
+)
+updater.dispatcher.add_handler(
+    MessageHandler(
+        Filters.command & Filters.chat(ALLOWED_GROUPS),
+        unknown,
+    )
+)
+updater.dispatcher.add_handler(
+    MessageHandler(
+        Filters.text & Filters.chat(ALLOWED_GROUPS),
+        unknown_text,
+    )
+)
+
 
 updater.start_polling()
