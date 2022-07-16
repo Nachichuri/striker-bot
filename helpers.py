@@ -21,13 +21,10 @@ def get_strike_reaction(strike_count):
     match strike_count:
         case 0:
             return "⚡ Strikes: *0* (For now)"
-        case 1 | 2:
+        case 1:
             return f"⚡ Strikes: *{strike_count}* (Only {strike_count}? Are we sure?)"
-        case 3:
-            return "⚡ Strikes: *3* (Oooh, half way there!)"
-        case 4 | 5:
+        case 2:
             return f"⚡ Strikes: *{strike_count}* (Better watch your step, only 1 strike left to reach the _pastries tier_!)"
-
 
 def get_pastries_reaction(pastries_count):
     if pastries_count == 0:
@@ -40,13 +37,16 @@ def get_pastries_reaction(pastries_count):
         return f"🥐 Pastries: *{pastries_count}* (What? {pastries_count}???? I'd start looking into some kind of personal loan by now...)"
 
 
-def compute_new_values(current_strikes, current_pastries, strikes_to_add):
+def compute_new_values(
+    current_strikes, current_pastries, strikes_to_add, pastry_treshold
+):
 
+    pastry_treshold = int(pastry_treshold)
     new_strikes = current_strikes + strikes_to_add
 
-    if new_strikes > 4:
-        updated_strikes = new_strikes % 5
-        updated_pastries = current_pastries + new_strikes // 5
+    if new_strikes > (pastry_treshold - 1):
+        updated_strikes = new_strikes % pastry_treshold
+        updated_pastries = current_pastries + new_strikes // pastry_treshold
     elif new_strikes < 0:
         updated_strikes = new_strikes if new_strikes > -6 else -5
         updated_pastries = current_pastries

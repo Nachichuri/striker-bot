@@ -11,6 +11,7 @@ from telegram.ext.updater import Updater
 
 DB_NAME = f"db/{os.getenv('DB_NAME')}"
 BOT_API_TOKEN = os.getenv("BOT_API_TOKEN")
+THRESHOLD = os.getenv("THRESHOLD") if os.getenv("THRESHOLD") is not None else 3
 DB_CONNECTION = strikerdb.check_connection(DB_NAME)
 ALLOWED_GROUPS = [int(id) for id in os.getenv("ALLOWED_GROUPS").split(",")]
 
@@ -42,7 +43,7 @@ def get_rules(update: Update, context: CallbackContext):
     update.message.reply_text(
         f"<i>Sup</i>, {update.message.from_user.first_name}? The rules are simple:"
         "\n\n<strong>Every time you screw something up, you get a strike ⚡</strong>\n\n"
-        "Every time your strike counter reaches 5, it resets back to 0, and your pastries 🥐 counter increases by one.\n\n"
+        f"Every time your strike counter reaches {THRESHOLD}, it resets back to 0, and your pastries 🥐 counter increases by one.\n\n"
         "Having a positive pastries counter means you'll have to live with a veil of shame until you bring pastries* "
         "for the team to the office and somebody runs /brought_pastries on your username.\n\n"
         "If somebody thinks you deserve it, they can give you negative strikes, and you can have up to 5 negative strikes, "
@@ -73,7 +74,7 @@ def create_user(update: Update, context: CallbackContext):
 def strike_user(update: Update, context: CallbackContext):
     args = validate_arguments(update.message.text)
     update.message.reply_text(
-        strikerdb.strike_user(DB_NAME, args),
+        strikerdb.strike_user(DB_NAME, args, THRESHOLD),
         parse_mode="Markdown",
     )
 

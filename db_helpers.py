@@ -106,7 +106,7 @@ def get_status(db_name, args: None):
         )
 
 
-def strike_user(db_name, args):
+def strike_user(db_name, args, pastry_treshold):
 
     if len(args) == 0 or (len(args) > 1 and args[0].isnumeric()):
         return (
@@ -118,6 +118,15 @@ def strike_user(db_name, args):
     user_display = user.capitalize()
 
     conn = sqlite3.connect(db_name)
+
+    try:
+        int(pastry_treshold)
+    except ValueError:
+        return (
+            "✋ Whoops! Looks like I can't record the strikes since the value I've been given"
+            f" for my pastries threshold is _{pastry_treshold}_, which is not a valid integer."
+            "\n\nPlease report this error to the bot owner 🙃"
+        )
 
     with conn as claw:
         cursor = claw.cursor()
@@ -134,13 +143,19 @@ def strike_user(db_name, args):
         if len(args) == 1:
             strikes_to_add = 1
             updated_user_status = helpers.compute_new_values(
-                current_user_strikes, current_user_pastries, strikes_to_add
+                current_user_strikes,
+                current_user_pastries,
+                strikes_to_add,
+                pastry_treshold,
             )
         else:
             try:
                 strikes_to_add = int(args[1])
                 updated_user_status = helpers.compute_new_values(
-                    current_user_strikes, current_user_pastries, strikes_to_add
+                    current_user_strikes,
+                    current_user_pastries,
+                    strikes_to_add,
+                    pastry_treshold,
                 )
             except ValueError:
                 return (
