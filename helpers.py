@@ -27,7 +27,7 @@ def validate_arguments(message):
     return arguments
 
 
-def get_strike_reaction(strike_count):
+def get_strike_reaction(strike_count, pastry_threshold):
     """Replies with a custom message which changes with the amount of strikes.
 
     Args:
@@ -39,13 +39,15 @@ def get_strike_reaction(strike_count):
     if strike_count < 0:
         return f"⚡ Strikes: *{strike_count}* (Hey! Don't think for a second this'll let you break the production environment next friday!)"
 
-    match strike_count:
-            case 0:
-                return "⚡ Strikes: *0* (For now)"
-            case 1:
-                return f"⚡ Strikes: *{strike_count}* (Only {strike_count}? Are we sure?)"
-            case 2:
-                return f"⚡ Strikes: *{strike_count}* (Better watch your step, only 1 strike left to reach the _pastries tier_!)"
+    if strike_count == 0:
+        return "⚡ Strikes: *0* (For now)"
+    if strike_count == 1:
+        return f"⚡ Strikes: *{strike_count}* (Only {strike_count}? Are we sure?)"
+    if strike_count >= 2:
+        return (
+            f"⚡ Strikes: *{strike_count}* (Better watch your step, only {int(pastry_threshold) - strike_count} "
+            f"{'strike' if int(pastry_threshold) - strike_count == 1 else 'strikes'} left to reach the _pastries tier_!)"
+        )
 
 
 def get_pastries_reaction(pastries_count):

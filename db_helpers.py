@@ -67,12 +67,13 @@ def create_user(db_name, args):
             )
 
 
-def get_status(db_name, args: None):
+def get_status(db_name, args, pastry_threshold):
     """Query the database to get information about the status of every user.
 
     Args:
         db_name (string): name of the SQLite database to connect to.
         args (list): all the words inputted by the user after the command.
+        pastry_threshold (int): number of strikes required to increase the pastries counter.
 
     Returns:
         string: message to be returned by the bot.
@@ -125,7 +126,7 @@ def get_status(db_name, args: None):
         strike_count = int(user_status[0][1])
         pastries_count = int(user_status[0][2])
 
-        strikes_status = helpers.get_strike_reaction(strike_count)
+        strikes_status = helpers.get_strike_reaction(strike_count, pastry_threshold)
         pastries_status = helpers.get_pastries_reaction(pastries_count)
 
         return (
@@ -219,7 +220,7 @@ def strike_user(db_name, args, pastry_threshold):
 
         updated_status_answer = (
             f"Striking done. Here's where *{user_display}* stands now:\n\n"
-            f"{helpers.get_strike_reaction(updated_user_status[0])}\n\n"
+            f"{helpers.get_strike_reaction(updated_user_status[0], pastry_threshold)}\n\n"
             f"{helpers.get_pastries_reaction(updated_user_status[1])}"
         )
 
@@ -236,12 +237,13 @@ def strike_user(db_name, args, pastry_threshold):
         return updated_status_answer
 
 
-def substract_pastry(db_name, args):
+def substract_pastry(db_name, args, pastry_threshold):
     """Substracts a single pastry from the pastries counter of one user.
 
     Args:
         db_name (string): name of the SQLite database to connect to.
         args (list): all the words inputted by the user after the command.
+        pastry_threshold (int): number of strikes required to increase the pastries counter.
 
     Returns:
         string: message to be returned by the bot.
@@ -287,7 +289,7 @@ def substract_pastry(db_name, args):
 
         updated_status_answer = (
             f"Here's where *{user_display}* stands now:\n\n"
-            f"{helpers.get_strike_reaction(current_user_strikes)}\n\n"
+            f"{helpers.get_strike_reaction(current_user_strikes, pastry_threshold)}\n\n"
             f"{helpers.get_pastries_reaction(new_user_pastry_count)}"
         )
 

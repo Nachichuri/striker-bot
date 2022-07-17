@@ -59,7 +59,7 @@ def get_status(update: Update, context: CallbackContext):
     args = validate_arguments(update.message.text)
 
     update.message.reply_text(
-        strikerdb.get_status(DB_NAME, args), parse_mode="Markdown"
+        strikerdb.get_status(DB_NAME, args, THRESHOLD), parse_mode="Markdown"
     )
 
 
@@ -82,7 +82,7 @@ def strike_user(update: Update, context: CallbackContext):
 def substract_pastry(update: Update, context: CallbackContext):
     args = validate_arguments(update.message.text)
     update.message.reply_text(
-        strikerdb.substract_pastry(DB_NAME, args),
+        strikerdb.substract_pastry(DB_NAME, args, THRESHOLD),
         parse_mode="Markdown",
     )
 
