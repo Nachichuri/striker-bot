@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  {{ cookiecutter.bot_name }}:
+    image: ghcr.io/nachichuri/striker-bot:latest
+    environment:
+      BOT_API_TOKEN: "{{ cookiecutter.bot_api_token }}"
+      DB_NAME: "{{ cookiecutter.database_name }}.db"
+      ALLOWED_GROUPS: "{{ cookiecutter.allowed_groups }}"
+      THRESHOLD: {{ cookiecutter.threshold }}
+    volumes:
+      - {{ cookiecutter.database_persistance_location }}:/bot/db
+    restart: always

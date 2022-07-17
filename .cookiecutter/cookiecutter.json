@@ -1,0 +1,9 @@
+{
+    "bot_name": "striker-bot",
+    "compose_name": "docker-compose",
+    "bot_api_token": "HTTP API TOKEN PROVIDED BY TELEGRAM",
+    "database_name": "strikes",
+    "allowed_groups": "COMMA SEPARATED ALLOWED GROUPS/USERS IDS",
+    "threshold": "3",
+    "database_persistance_location": "/opt/striker-bot"
+}
