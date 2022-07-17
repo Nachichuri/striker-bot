@@ -33,7 +33,7 @@ def help(update: Update, context: CallbackContext):
     /rules — what this is all about
     /status — see overall or user-specific status
     /strike <i>user n</i>  — add n strikes to the user
-    /brought_pastries <i>user</i>  — substracts an owed pastry when the user settles a pastry debt
+    /brought_pastries <i>user</i>  — subtracts an owed pastry when the user settles a pastry debt
     /create_user <i>user</i>  — adds a new user to be striken""",
         parse_mode="HTML",
     )
@@ -79,10 +79,10 @@ def strike_user(update: Update, context: CallbackContext):
     )
 
 
-def substract_pastry(update: Update, context: CallbackContext):
+def subtract_pastry(update: Update, context: CallbackContext):
     args = validate_arguments(update.message.text)
     update.message.reply_text(
-        strikerdb.substract_pastry(DB_NAME, args, THRESHOLD),
+        strikerdb.subtract_pastry(DB_NAME, args, THRESHOLD),
         parse_mode="Markdown",
     )
 
@@ -119,7 +119,7 @@ updater.dispatcher.add_handler(
 )
 updater.dispatcher.add_handler(
     CommandHandler(
-        "brought_pastries", substract_pastry, filters=Filters.chat(ALLOWED_GROUPS)
+        "brought_pastries", subtract_pastry, filters=Filters.chat(ALLOWED_GROUPS)
     )
 )
 

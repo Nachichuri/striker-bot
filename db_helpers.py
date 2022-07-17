@@ -156,7 +156,7 @@ def strike_user(db_name, args, pastry_threshold):
     if len(args) == 0 or (len(args) > 1 and args[0].isnumeric()):
         return (
             "✋ After the _/strike_ command, tell me the name of the person we're striking first, "
-            "and then optionally the number of strikes to add/substract\n( ͡° ͜ʖ ͡°)"
+            "and then optionally the number of strikes to add/subtract\n( ͡° ͜ʖ ͡°)"
         )
 
     user = args[0]
@@ -210,7 +210,7 @@ def strike_user(db_name, args, pastry_threshold):
                 return (
                     f"✋ _{args[1]}_ is not a valid number of strikes. "
                     f"Please type an integer representing the number of strikes "
-                    f"to add/substract from {user_display}. For example: _/strike {user_display} 1_"
+                    f"to add/subtract from {user_display}. For example: _/strike {user_display} 1_"
                 )
 
         cursor.execute(
@@ -237,8 +237,8 @@ def strike_user(db_name, args, pastry_threshold):
         return updated_status_answer
 
 
-def substract_pastry(db_name, args, pastry_threshold):
-    """Substracts a single pastry from the pastries counter of one user.
+def subtract_pastry(db_name, args, pastry_threshold):
+    """Subtracts a single pastry from the pastries counter of one user.
 
     Args:
         db_name (string): name of the SQLite database to connect to.
