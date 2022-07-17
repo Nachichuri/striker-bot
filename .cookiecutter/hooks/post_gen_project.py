@@ -16,7 +16,7 @@ print(
     '\n\t-e DB_NAME="{{ cookiecutter.database_name }}.db" \\'
     '\n\t-e ALLOWED_GROUPS="{{ cookiecutter.allowed_groups }}" \\'
     "\n\t-e THRESHOLD={{ cookiecutter.threshold }} \\"
-    "\n\t-v {{ cookiecutter.database_persistance_location }}:/app \\"
+    "\n\t-v {{ cookiecutter.database_persistance_location }}:/bot/db \\"
     "\n\tghcr.io/nachichuri/striker-bot:latest \\"
     "\n\tpython /bot/main.py"
 )
