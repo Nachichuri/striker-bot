@@ -5,20 +5,39 @@ import helpers
 
 
 def check_connection(db_name):
+    """Checks the everything is working as expected with the database.
+    We don't escape errors here by design, to prevent the bot from starting
+    altogether if there's something wrong.
+
+    Args:
+        db_name (string): name of the SQLite database to connect to/create.
+
+    Returns:
+        sqlite3.Connection: connection to database.
+    """
 
     conn = sqlite3.connect(db_name)
-
     cursor = conn.cursor()
-
     cursor.execute(queries.create_strikes_table)
 
     return conn
 
 
 def create_user(db_name, args):
+    """Adds a new user to the database.
+
+    Args:
+        db_name (string): name of the SQLite database to connect to.
+        args (list): all the words inputted by the user after the command.
+
+    Returns:
+        string: message to be returned by the bot.
+    """
 
     conn = sqlite3.connect(db_name)
 
+    # We require a single argument, the name of the user to be added,
+    # which also has to be alphanumeric.
     if len(args) == 0:
         return "✋ Please enter command followed by the name to be added."
     if len(args) > 1:
@@ -38,7 +57,7 @@ def create_user(db_name, args):
                 f"User *{user}* created successfully.\n"
                 "\nPssst! ( ¬ ‿¬)\n"
                 "You can start striking him/her using:\n"
-                f"_/strike {user} (nstrikes)_"
+                f"_/strike {user_display} (nstrikes)_"
             )
         except sqlite3.IntegrityError:
             return (
@@ -49,12 +68,23 @@ def create_user(db_name, args):
 
 
 def get_status(db_name, args: None):
+    """Query the database to get information about the status of every user.
+
+    Args:
+        db_name (string): name of the SQLite database to connect to.
+        args (list): all the words inputted by the user after the command.
+
+    Returns:
+        string: message to be returned by the bot.
+    """
 
     conn = sqlite3.connect(db_name)
 
     with conn as claw:
         cursor = claw.cursor()
 
+        # If the user only inputs the command alone, we retrieve info
+        # about the status of all the users.
         if len(args) == 0:
 
             cursor.execute(queries.get_all_status)
@@ -66,7 +96,6 @@ def get_status(db_name, args: None):
                     for x in all_status
                 ]
             )
-
             if len(all_status) == 0:
                 return (
                     "Seems like there aren't any users yet!\n\n"
@@ -77,6 +106,8 @@ def get_status(db_name, args: None):
                 f"Here's a report on everyone's current status:\n\n{all_status_results}"
             )
 
+        # And if the user inputs a name after the command, we retrieve information about
+        # that user. This can only be done for a single user.
         if len(args) > 1:
             return helpers.more_than_one_user_message
 
@@ -87,6 +118,7 @@ def get_status(db_name, args: None):
 
         user_display = user.capitalize()
 
+        # If the user isn't created, we reply accordingly.
         if len(user_status) == 0:
             return helpers.user_not_found_message % user_display
 
@@ -106,7 +138,19 @@ def get_status(db_name, args: None):
         )
 
 
-def strike_user(db_name, args, pastry_treshold):
+def strike_user(db_name, args, pastry_threshold):
+    """Uses the input after the command to add or remove strikes from the database for a single user.
+    Striking also implies reaching a certain threshold in which the user loses all accumulated strkes
+    and their pastries counter increases, which this function also is in charge of.
+
+    Args:
+        db_name (string): name of the SQLite database to connect to.
+        args (list): all the words inputted by the user after the command.
+        pastry_threshold (int): number of strikes required to increase the pastries counter.
+
+    Returns:
+        string: message to be returned by the bot.
+    """
 
     if len(args) == 0 or (len(args) > 1 and args[0].isnumeric()):
         return (
@@ -120,17 +164,18 @@ def strike_user(db_name, args, pastry_treshold):
     conn = sqlite3.connect(db_name)
 
     try:
-        int(pastry_treshold)
+        int(pastry_threshold)
     except ValueError:
         return (
             "✋ Whoops! Looks like I can't record the strikes since the value I've been given"
-            f" for my pastries threshold is _{pastry_treshold}_, which is not a valid integer."
+            f" for my pastries threshold is _{pastry_threshold}_, which is not a valid integer."
             "\n\nPlease report this error to the bot owner 🙃"
         )
 
     with conn as claw:
         cursor = claw.cursor()
 
+        # We retrieve a user current status to see how we have to handle the new strikes.
         cursor.execute(queries.get_status_from_user, (user,))
         user_status = cursor.fetchall()
 
@@ -140,14 +185,17 @@ def strike_user(db_name, args, pastry_treshold):
         current_user_strikes = int(user_status[0][1])
         current_user_pastries = int(user_status[0][2])
 
+        # If a user inputs the command and a name but no number of strikes,
+        # it will by default add a single strike to the counter.
         if len(args) == 1:
             strikes_to_add = 1
             updated_user_status = helpers.compute_new_values(
                 current_user_strikes,
                 current_user_pastries,
                 strikes_to_add,
-                pastry_treshold,
+                pastry_threshold,
             )
+        # Otherwise, it will add all the strikes the user inputted.
         else:
             try:
                 strikes_to_add = int(args[1])
@@ -155,7 +203,7 @@ def strike_user(db_name, args, pastry_treshold):
                     current_user_strikes,
                     current_user_pastries,
                     strikes_to_add,
-                    pastry_treshold,
+                    pastry_threshold,
                 )
             except ValueError:
                 return (
@@ -189,6 +237,15 @@ def strike_user(db_name, args, pastry_treshold):
 
 
 def substract_pastry(db_name, args):
+    """Substracts a single pastry from the pastries counter of one user.
+
+    Args:
+        db_name (string): name of the SQLite database to connect to.
+        args (list): all the words inputted by the user after the command.
+
+    Returns:
+        string: message to be returned by the bot.
+    """
 
     if len(args) == 0:
         return "Please tell me who brought pastries to the office so I can decrease his/her pastries counter."
