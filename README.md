@@ -6,8 +6,7 @@
 \__ \ |_| |  | |   <  __/ |    | |_) | (_) | |_
 |___/\__|_|  |_|_|\_\___|_|    |_.__/ \___/ \__|
 ```
-
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/nachichuri/striker-bot/Build?style=flat-square)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Nachichuri/striker-bot/build.yaml?style=flat-square)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/Nachichuri/striker-bot?style=flat-square)
 ![GitHub](https://img.shields.io/github/license/Nachichuri/striker-bot?style=flat-square)
 
